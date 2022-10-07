@@ -1,0 +1,1 @@
+brownie networks add Binance bsc_main chainid=56 host=https://bsc-dataseed.binance.org/ explorer=https://bscscan.com name="Mainnet (Binance)"
