@@ -243,7 +243,8 @@ contract SpiceLiquidityHandler is Ownable {
         //divide our busd balance into two
         uint256 half = IERC20(busd).balanceOf(address(this)) / 2;
         uint256 initialBalance = IERC20(spice).balanceOf(address(this));
-        if (half > 0 && (half * 2) > SWAP_THRESHOLD) {
+
+        if (half * 2 > SWAP_THRESHOLD) {
             uint256 otherHalf = IERC20(busd).balanceOf(address(this)) - half;
             //swap half busd for spice
             _swapBusdForSpice(half, address(this));
@@ -252,7 +253,7 @@ contract SpiceLiquidityHandler is Ownable {
             uint256 newBalance = IERC20(spice).balanceOf(address(this)) -
                 initialBalance;
 
-            //add liquiditys
+            //add liquidity
             if (newBalance > 0) {
                 _addLiquidity(newBalance, newBalance);
             }

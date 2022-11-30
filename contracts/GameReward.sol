@@ -318,12 +318,18 @@ contract GameReward is Ownable, ReentrancyGuard {
         uint256 transaction_id = uint256(
             keccak256(abi.encode(newId, block.timestamp))
         ) % 10;
-        uint256 boostPercent = (withdrawalFees * 2) / 100;
 
-        totalRewardsBalance -= _gems - boostPercent;
+        //takes two percent of the withdrawal fees to boost the reward contract balance
+        uint256 boostRewardBalancePerecent = (withdrawalFees * 2) / 100;
 
+        totalRewardsBalance -= (_gems - boostRewardBalancePerecent);
+
+        //amount to be sent to receiver
         uint256 totalAmount = _gems - withdrawalFees;
-        totalWithdrawFees += withdrawalFees - boostPercent;
+
+        //fees save as contract balance
+        totalWithdrawFees += withdrawalFees - boostRewardBalancePerecent;
+
         IERC20(spiceContract).transfer(receiver, totalAmount);
         if (totalWithdrawFees >= withdrawalFees) {
             address ownerAddress = msg.sender;
@@ -345,9 +351,10 @@ contract GameReward is Ownable, ReentrancyGuard {
         path[0] = spiceContract;
         path[1] = busd;
 
-        address[] memory path2 = new address[](2);
-        path2[0] = busd;
-        path2[1] = router.WETH();
+        address[] memory path2 = new address[](3);
+        path2[0] = spiceContract;
+        path2[1] = busd;
+        path2[2] = router.WETH();
 
         uint256 spiceBalance = IERC20(spiceContract).balanceOf(address(this));
         if (spiceBalance > withdrawalFees) {

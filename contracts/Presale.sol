@@ -15,13 +15,14 @@ interface ISpice {
 contract Presale is Ownable {
     //the presale functions to create new tokens
 
-    address SpiceAddress;
-    address busd;
-    uint256 presaleTimer;
-    bool presaleOpen = false;
-    bool presaleOver = false;
-    bool tokensSet = false;
+    address public SpiceAddress;
+    address public busd;
+    uint256 public presaleTimer;
+    bool public presaleOpen = false;
+    bool public presaleOver = false;
+    bool public tokensSet = false;
     address presaleWithdrawWallet;
+    uint256 public presalePrice = 1;
 
     constructor(address _withdrawWallet) {
         presaleWithdrawWallet = _withdrawWallet;
@@ -53,8 +54,10 @@ contract Presale is Ownable {
     //presale function mints new tokens in exchange for busd
 
     function presale(uint256 busdAmount) external checkPresaleOpen {
-        require(busdAmount > 0); //busd amount must be greater than zero
+        uint256 spiceBalance = IERC20(SpiceAddress).balanceOf(address(this));
+        require(busdAmount > 0, "amount must be greater than zero"); //busd amount must be greater than zero
         require(block.timestamp <= presaleTimer, "presale has ended");
+        require(spiceBalance >= busdAmount, "Presale is sold out");
         uint256 spiceAmount = busdAmount;
         IERC20(busd).transferFrom(msg.sender, address(this), busdAmount);
         IERC20(SpiceAddress).transfer(msg.sender, spiceAmount);

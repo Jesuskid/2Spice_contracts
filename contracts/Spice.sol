@@ -282,8 +282,8 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
 
     IPancakeRouter02 private router;
 
-    address public busd = 0x035a87F017d90e4adD84CE589545D4a8C5B7Ec80;
-    address liquidityReceiver;
+    address public busd;
+    address public liquidityReceiver;
     address public pairBusd;
 
     address public devAndMarketingWallet;
@@ -306,7 +306,7 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
     uint256 public presalePrice = 1;
     uint256 public presaleTimer;
     uint256 public feeCollectedSpice;
-    uint256 feeCollectedBusd;
+    uint256 public feeCollectedBusd;
     uint256 stuckFees;
     uint256 SWAP_TRESHOLD = 50000000;
 
@@ -343,15 +343,19 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
         _;
     }
 
+    bool evolutionEnabled = true;
+
     constructor(
+        address _busd,
         address _presaleContract,
         address _router,
         uint256 _presaleSupply
     )
         //busd address,
-        ERC20("T2Spice", "TSpice")
+        ERC20("F2Spice", "FSpice")
         ERC20Burnable()
     {
+        busd = _busd;
         router = IPancakeRouter02(_router);
 
         pairBusd = IPancakeFactory(router.factory()).createPair(
@@ -386,7 +390,7 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
     function sellToThis(uint256 spiceAmount) external {
         require(spiceAmount > 0);
         //gets the spice price
-        uint256 spicePrice = _calcPCSPrice();
+        uint256 spicePrice = fetchPCSPrice();
         uint256 busdAmountBeforeFees = (spiceAmount * spicePrice) / 1e18;
         uint256 IP_BUSD_Balance = IERC20(busd).balanceOf(address(this));
         require(
@@ -414,7 +418,7 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
     function purchaseFromThis(uint256 busdAmount) external {
         require(busdAmount > 0);
         //fetch spice price
-        uint256 spicePrice = _calcPCSPrice();
+        uint256 spicePrice = fetchPCSPrice();
         // get fees
         uint256 fee = (busdAmount * totalBuyFee) / 100;
         feeCollectedBusd += fee;
@@ -434,7 +438,7 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
         uint256 deadline = block.timestamp + 1 minutes;
         address[] memory cvxPath = new address[](2);
         cvxPath[0] = address(this);
-        cvxPath[1] = address(busd);
+        cvxPath[1] = busd;
         router.swapExactTokensForTokens(
             tokenAmount,
             0,
@@ -597,7 +601,7 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
             busdAmount,
             0,
             0,
-            liquidityReceiver,
+            liqudityHandlerWallet,
             block.timestamp
         );
     }
@@ -633,7 +637,7 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
             !_isFeeExempt[_from] &&
             inSwap == false &&
             !marketPairs[_from] &&
-            swapEnabled == true
+            evolutionEnabled == true
         ) {
             return true;
         } else {
@@ -643,6 +647,11 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
 
     function toggleFeeSwapping(bool isEnabled) public onlyOwner {
         swapEnabled = isEnabled;
+        emit SwappingStateChanged(isEnabled);
+    }
+
+    function toggleEvolution(bool isEnabled) public onlyOwner {
+        evolutionEnabled = isEnabled;
         emit SwappingStateChanged(isEnabled);
     }
 
@@ -673,7 +682,9 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
         if (isBuy == true) {
             uint256 amountToTreasury = (buyTreasury * _fee) / 100;
             uint256 amountToLP = (buyLP * _fee) / 100;
+
             IERC20(busd).transfer(treasuryWallet, amountToTreasury);
+
             _mint(address(this), amountToLP);
             addLiquidityBusd(amountToLP, amountToLP);
         } else if (isBuy == false) {
@@ -793,6 +804,7 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
     function clearStuckFees(address _receiver) external onlyOwner {
         uint256 balance = feeCollectedSpice; //gas optimization
         transfer(_receiver, balance);
+        feeCollectedSpice = 0;
         emit ClearStuckBalance(_receiver);
     }
 
@@ -814,7 +826,10 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
     }
 
     function fetchPCSPrice() public view returns (uint256) {
-        uint256[] memory out = router.getAmountsOut(1 ether, path);
+        address[] memory cvxPath = new address[](2);
+        cvxPath[0] = address(this);
+        cvxPath[1] = busd;
+        uint256[] memory out = router.getAmountsOut(1 ether, cvxPath);
         return out[1];
     }
 

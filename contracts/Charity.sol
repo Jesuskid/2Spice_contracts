@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract Charity is AccessControl {
-    bytes32 public constant ALLOWED_CONTRACTS = keccak256("ALLOWED_CONTRACTS");
     bytes32 public constant DEV_ROLE = keccak256("DEV_ROLE");
     address internal busd;
     event Log(string func, address sender, uint256 value, bytes data);
@@ -25,10 +24,7 @@ contract Charity is AccessControl {
         emit Log("fallback", msg.sender, msg.value, "");
     }
 
-    function transferTo(address rec, uint256 amount)
-        public
-        onlyRole(ALLOWED_CONTRACTS)
-    {
+    function transferTo(address rec, uint256 amount) public onlyRole(DEV_ROLE) {
         IERC20(busd).transfer(rec, amount);
     }
 }

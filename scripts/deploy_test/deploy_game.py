@@ -22,4 +22,4 @@ router = "0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3"
 
 
 def main():
-    tx = GameReward.deploy(spice, router, BUSD_ADDRESS, {"from": ACCOUNT})
+    tx = GameReward.deploy(spice.address, router, BUSD_ADDRESS, {"from": ACCOUNT})

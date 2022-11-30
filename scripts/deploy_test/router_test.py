@@ -1,4 +1,3 @@
-import imp
 from brownie import (
     accounts,
     config,
@@ -32,7 +31,7 @@ def first():
 
     path2 = [C_ADDRESS.address, BUSD_ADDRESS]
     one_ether = Web3.toWei(5, "ether")
-    two_ether = Web3.toWei(20, "ether")
+    two_ether = Web3.toWei(200, "ether")
 
     spBefore = C_ADDRESS.balanceOf.call(C_ADDRESS.address)
     feeCollectedB = C_ADDRESS.feeCollectedSpice()
@@ -45,7 +44,6 @@ def first():
     )
     tx0.wait(1)
 
-
     tx00 = C_ADDRESS.approve(
         account, two_ether, {"from": account, "gas_limit": 2100000}
     )
@@ -55,7 +53,7 @@ def first():
         router_address, two_ether, {"from": account, "gas_limit": 2100000}
     )
     tx01.wait(1)
-    
+
     tx2 = router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
         two_ether, 0, path, account, now, {"from": account, "gas_limit": 2100000}
     )
@@ -65,7 +63,6 @@ def first():
         one_ether, 0, path2, account, now, {"from": account, "gas_limit": 2100000}
     )
     tx3.wait(1)
-
 
     feeCollected = C_ADDRESS.feeCollectedSpice()
     canSwap = C_ADDRESS.canSwapFees(feeCollected)
@@ -148,5 +145,27 @@ def third():
     allowance = interface.IERC20(BUSD_ADDRESS).allowance(lp.address, router_address)
 
 
+def transfer():
+    account = get_account()
+    spice = Spice[-1]
+
+    one_ether = Web3.toWei(1, "ether")
+    ten_ether = Web3.toWei(1, "ether")
+
+    print(spice.feeCollectedSpice())
+
+    tx2 = interface.IERC20(spice.address).transfer(
+        account, ten_ether, {"from": account}
+    )
+    tx2.wait(1)
+
+
+def fetchPCS():
+    spice = Spice[-1]
+    var = spice.fetchPCSPrice()
+
+    print(var)
+
+
 def main():
-    third()
+    fetchPCS()

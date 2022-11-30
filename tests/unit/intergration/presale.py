@@ -1,7 +1,7 @@
 from brownie import accounts, config, network, Spice, interface, Presale
 from scripts.helpful_scripts import get_account
 from web3 import Web3
-from scripts.deploy_bsctestnet import deploy_Contracts, latest_contract, latest_presale
+from scripts.deploy_test.deploy import latest_contract, latest_presale
 import time
 
 
@@ -12,7 +12,7 @@ def test_presaleOpens():
     BUSD_CONTRACT = interface.IERC20(BUSD_ADDRESS)
     # arrange
     spiceContract = latest_presale()
-    spiceContract.openPresale({"from": ACCOUNT, "gas_limit": 2100000})
+    # spiceContract.openPresale({"from": ACCOUNT, "gas_limit": 2100000})
 
     # act
     open = spiceContract.presaleOpen()
@@ -21,7 +21,6 @@ def test_presaleOpens():
     # assert
     assert open == True
     assert timer > 0
-    time.sleep(2)
 
 
 def test_presale():
@@ -41,4 +40,19 @@ def test_presale():
     # assert
     assert BUSD_CONTRACT.balanceOf(spiceContract.address) > initial_balance
     print("presale successful")
-    time.sleep(140)
+
+
+def test_withdraw():
+    # arrange
+    ACCOUNT = get_account()
+    ONE_ETHER = Web3.toWei(1, "ether")
+    BUSD_ADDRESS = "0x035a87F017d90e4adD84CE589545D4a8C5B7Ec80"
+    BUSD_CONTRACT = interface.IERC20(BUSD_ADDRESS)
+    spiceContract = latest_presale()
+    initial_balance = BUSD_CONTRACT.balanceOf(spiceContract.address)
+    # act
+    spiceContract.openContractAndWithdrawPresale(
+        {"from": ACCOUNT, "gas_limit": 2100000}
+    )
+    # assert
+    assert BUSD_CONTRACT.balanceOf(spiceContract.address) == 0
