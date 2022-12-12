@@ -15,9 +15,10 @@ from web3 import Web3
 
 BUSD_ADDRESS = "0x035a87F017d90e4adD84CE589545D4a8C5B7Ec80"
 ACCOUNT = get_account()
+ADMIN = get_account() #to be swap
 
 
 def main():
-    tx = Treasury.deploy(BUSD_ADDRESS, {"from": ACCOUNT})
-    tx1 = Charity.deploy(BUSD_ADDRESS, {"from": ACCOUNT})
-    tx2 = Dev.deploy(BUSD_ADDRESS, {"from": ACCOUNT})
+    tx = Treasury.deploy(BUSD_ADDRESS, ADMIN, {"from": ACCOUNT})
+    tx1 = Charity.deploy(BUSD_ADDRESS, ADMIN, {"from": ACCOUNT})
+    tx2 = Dev.deploy(BUSD_ADDRESS, ADMIN, {"from": ACCOUNT})

@@ -25,3 +25,7 @@ def get_account(index=None, id=None):
         return accounts.add(config["wallets"]["from_key"])
 
 
+
+BUSD_ADDRESS = ''
+ROUTER_ADDRESS = ''
+OWNER_ADDRESS = ''

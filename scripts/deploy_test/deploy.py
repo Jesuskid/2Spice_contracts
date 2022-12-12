@@ -19,11 +19,12 @@ BUSD_ADDRESS = "0x035a87F017d90e4adD84CE589545D4a8C5B7Ec80"
 ACCOUNT = get_account()
 ROUTER = "0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3"
 Wallet = "0x8478F8c1d693aB4C054d3BBC0aBff4178b8F1b0B"
+OWNER = get_account()
 
 
-def deploy_presale():
-    account = get_account()
-    presale = Presale.deploy(Wallet, {"from": account})
+# def deploy_presale():
+#     account = get_account()
+#     presale = Presale.deploy(Wallet, {"from": account})
 
 
 def deploy_Contracts():
@@ -34,7 +35,7 @@ def deploy_Contracts():
         BUSD_ADDRESS,
         presale.address,
         ROUTER,
-        presale_supply,
+        OWNER,
         {"from": account},
     )
     print("deployed spice successfully")
@@ -113,7 +114,6 @@ def addTestLiqudity():
 
 
 def main():
-    deploy_presale()
     deploy_Contracts()
     setWallets()
     deploy_liquidity_handler()

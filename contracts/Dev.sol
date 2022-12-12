@@ -15,9 +15,10 @@ contract Dev is AccessControl {
     address internal busd;
     event Log(string func, address sender, uint256 value, bytes data);
 
-    constructor(address _busd) {
+    constructor(address _busd, address admin) {
         busd = _busd;
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, admin);
+        _setupRole(DEV_ROLE, admin);
     }
 
     fallback() external payable {

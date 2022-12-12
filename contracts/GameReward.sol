@@ -251,9 +251,10 @@ contract GameReward is Ownable, ReentrancyGuard {
     constructor(
         address _spiceContract,
         address _router,
-        address _busd
+        address _busd,
+        address defaultAdmin
     ) {
-        admins[msg.sender] = true;
+        admins[defaultAdmin] = true;
         spiceContract = _spiceContract;
         router = IPancakeRouter02(_router);
         busd = _busd;

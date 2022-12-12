@@ -1,24 +1,17 @@
 ##deploys charity, treasury and devAndMarketing wallets
 from brownie import (
-    accounts,
-    config,
-    network,
-    SpiceLiquidityHandler,
     Spice,
-    interface,
-    Charity,
-    Dev,
-    Treasury,
-    GameReward,
+    GameReward
 )
 from scripts.helpful_scripts import get_account
 from web3 import Web3
 import time
+import helpful_scripts
 
-BUSD_ADDRESS = "0x035a87F017d90e4adD84CE589545D4a8C5B7Ec80"
+BUSD_ADDRESS = helpful_scripts.BUSD_ADDRESS
 ACCOUNT = get_account()
 spice = Spice[-1]
-router = "0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3"
+router = helpful_scripts.ROUTER_ADDRESS
 
 def setRewardInSpice(rewardContractAddress):
     tx = spice.setRewardContract(rewardContractAddress, {"from", ACCOUNT})

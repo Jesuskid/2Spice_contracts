@@ -290,6 +290,7 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
     address public treasuryWallet;
     address public charityWallet;
     address public liqudityHandlerWallet;
+    address public rewardContract;
 
     address presaleWithdrawWallet;
 
@@ -313,15 +314,18 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
     // fees
     uint256 public totalBuyFee = 5;
     uint256 public totalSellFee = 10;
+
     uint256 buyLP = 3;
     uint256 buyTreasury = 2;
 
     uint256 sellDevMarketing = 2;
-    uint256 sellLP = 3;
-    uint256 sellTreasury = 3;
+    uint256 sellLP = 2;
+    uint256 sellTreasury = 2;
     uint256 sellCharity = 2;
+    uint256 sellReward = 2;
 
-    uint256 MaxPoolBurn = 10000e18;
+    uint256 InitialOwnerMint = 250e18;
+    uint256 InitialRewardMint = 150e18;
 
     uint256 internalPoolBusdReserves;
 
@@ -329,6 +333,7 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
     bool public presaleOver = false;
     bool swapEnabled = false;
     bool private inSwap;
+    bool isRewardContractSet = false;
     address presaleContract;
 
     modifier swapping() {
@@ -349,7 +354,7 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
         address _busd,
         address _presaleContract,
         address _router,
-        uint256 _presaleSupply
+        address ownerAddress
     )
         //busd address,
         ERC20("F2Spice", "FSpice")
@@ -378,12 +383,19 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
         _isFeeExempt[address(this)] = true;
 
         _isFeeExempt[msg.sender] = true;
+        _isFeeExempt[ownerAddress] = true;
         _isFeeExempt[_presaleContract] = true;
 
         presaleContract = _presaleContract;
         //test mints
-        _mint(msg.sender, initialSupply);
-        _mint(_presaleContract, initialSupply);
+        _mint(ownerAddress, InitialOwnerMint);
+    }
+
+    function setRewardContract(address _rewardContract) external onlyOwner {
+        require(isRewardSet == false, "reward alredy set");
+        _isFeeExempt[_rewardContract] = true;
+        rewardContract = _rewardContract;
+        _mint(_rewardContract, InitialRewardMint);
     }
 
     //Internal pool sell to function, takes fees in BUSD
@@ -454,10 +466,6 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
         require(_isFeeExempt[_addr] != _value, "Not changed");
         _isFeeExempt[_addr] = _value;
         emit SetFeeExempted(_addr, _value);
-    }
-
-    function setPresaleWallet(address _presaleC) external onlyOwner {
-        presaleContract = _presaleC;
     }
 
     //ERC20 overidden functions
@@ -666,15 +674,19 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
             ((sellDevMarketing * 100) / totalFee)) / 100;
         uint256 amountToCharity = (_fee * ((sellCharity * 100) / totalFee)) /
             100;
+        uint256 amountToReward = (_fee * ((sellReward * 100) / totalFee)) / 100;
         _swapSpiceForBusd(amountToTreasury, treasuryWallet);
         _swapSpiceForBusd(amountToLP, liqudityHandlerWallet);
         _swapSpiceForBusd(amountToMarketing, devAndMarketingWallet);
         _swapSpiceForBusd(amountToCharity, charityWallet);
+        _transfer(address(this), rewardContract, amountToReward);
+
         feeCollectedSpice -=
             amountToTreasury +
             amountToMarketing +
             amountToLP +
-            amountToCharity;
+            amountToCharity +
+            amountToReward;
     }
 
     //transfers busd fees collected
@@ -688,14 +700,17 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
             _mint(address(this), amountToLP);
             addLiquidityBusd(amountToLP, amountToLP);
         } else if (isBuy == false) {
+            uint256 price = fetchPCSPrice();
             uint256 amountToTreasury = (sellTreasury * _fee) / 100;
             uint256 amountToLP = (sellLP * _fee) / 100;
             uint256 amountToMarketing = (sellDevMarketing * _fee) / 100;
             uint256 amountToCharity = (sellCharity * _fee) / 100;
+            uint256 amountToReward = (sellCharity * _fee) / 100;
             IERC20(busd).transfer(treasuryWallet, amountToTreasury);
             IERC20(busd).transfer(devAndMarketingWallet, amountToMarketing);
             IERC20(busd).transfer(charityWallet, amountToCharity);
             _mint(address(this), amountToLP);
+            _mint(rewardContract, amountToReward / price);
             addLiquidityBusd(amountToLP, amountToLP);
         }
     }
@@ -806,23 +821,6 @@ contract Spice is ERC20, ERC20Burnable, Ownable {
         transfer(_receiver, balance);
         feeCollectedSpice = 0;
         emit ClearStuckBalance(_receiver);
-    }
-
-    //check
-    //burn from the Pancake swap pair
-    function burnFromPool(address holder, uint256 amount) public onlyOwner {
-        uint256 poolBalance = balanceOf(pairBusd);
-        require((poolBalance - MaxPoolBurn) > amount);
-        _burnInternal(holder, amount);
-    }
-
-    //check
-    function _burnInternal(address holder, uint256 amount) internal {
-        require(marketPairs[holder], "It must be a pair contract");
-        _totalSupply -= amount;
-        _balances[holder] -= amount;
-        InterfaceLP(holder).sync();
-        emit Transfer(holder, address(0), amount);
     }
 
     function fetchPCSPrice() public view returns (uint256) {
