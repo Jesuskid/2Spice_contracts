@@ -9,7 +9,7 @@ from brownie import (
     GameReward,
 )
 from brownie.network import priority_fee
-from scripts.helpful_scripts import get_account
+from scripts.helpful_scripts import get_account, get_account2
 from web3 import Web3
 import time
 import datetime
@@ -31,9 +31,9 @@ def first():
 
     path2 = [C_ADDRESS.address, BUSD_ADDRESS]
     one_ether = Web3.toWei(5, "ether")
-    two_ether = Web3.toWei(200, "ether")
+    two_ether = Web3.toWei(5, "ether")
 
-    spBefore = C_ADDRESS.balanceOf.call(C_ADDRESS.address)
+    
     feeCollectedB = C_ADDRESS.feeCollectedSpice()
 
     future = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
@@ -44,25 +44,24 @@ def first():
     )
     tx0.wait(1)
 
-    tx00 = C_ADDRESS.approve(
-        account, two_ether, {"from": account, "gas_limit": 2100000}
-    )
-    tx00.wait(1)
+    # tx01 = interface.IERC20(BUSD_ADDRESS).approve(
+    #     router_address, two_ether, {"from": account, "gas_limit": 2100000}
+    # )
+    # tx01.wait(1)
 
-    tx01 = interface.IERC20(BUSD_ADDRESS).approve(
-        router_address, two_ether, {"from": account, "gas_limit": 2100000}
-    )
-    tx01.wait(1)
-
+    print('swapping Busd for Spcie')
     tx2 = router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
         two_ether, 0, path, account, now, {"from": account, "gas_limit": 2100000}
     )
     tx2.wait(1)
+    balance = C_ADDRESS.balanceOf(account)
+    print(balance)
 
-    tx3 = router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-        one_ether, 0, path2, account, now, {"from": account, "gas_limit": 2100000}
-    )
-    tx3.wait(1)
+    # print('swapping Spice for BUSD')
+    # tx3 = router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+    #     one_ether, 0, path2, account, now, {"from": account, "gas_limit": 2100000}
+    # )
+    # tx3.wait(1)
 
     feeCollected = C_ADDRESS.feeCollectedSpice()
     canSwap = C_ADDRESS.canSwapFees(feeCollected)
@@ -73,7 +72,7 @@ def first():
     spAfter = C_ADDRESS.balanceOf.call(C_ADDRESS.address)
 
     # print(tx2)
-    print(Web3.fromWei(spBefore, "ether"), Web3.fromWei(spAfter, "ether"))
+    # print(Web3.fromWei(spBefore, "ether"), Web3.fromWei(spAfter, "ether"))
 
 
 def second():
@@ -148,14 +147,15 @@ def third():
 def transfer():
     account = get_account()
     spice = Spice[-1]
+    account2 =get_account2()
 
     one_ether = Web3.toWei(1, "ether")
-    ten_ether = Web3.toWei(1, "ether")
+    ten_ether = Web3.toWei(200, "ether")
 
     print(spice.feeCollectedSpice())
 
     tx2 = interface.IERC20(spice.address).transfer(
-        account, ten_ether, {"from": account}
+        account2, ten_ether, {"from": account}
     )
     tx2.wait(1)
 
@@ -168,4 +168,5 @@ def fetchPCS():
 
 
 def main():
-    fetchPCS()
+    # transfer()
+    first()

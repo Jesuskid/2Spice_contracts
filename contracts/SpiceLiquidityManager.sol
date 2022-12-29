@@ -222,7 +222,7 @@ contract SpiceLiquidityHandler is Ownable {
     address pairContract;
     IPancakeRouter02 router;
 
-    uint256 SWAP_THRESHOLD = 5000000;
+    uint256 SWAP_THRESHOLD = 5e18;
 
     constructor(
         address _spiceAddress,

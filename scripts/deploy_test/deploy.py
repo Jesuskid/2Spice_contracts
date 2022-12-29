@@ -29,32 +29,15 @@ OWNER = get_account()
 
 def deploy_Contracts():
     account = get_account()
-    presale_supply = Web3.toWei(10000, "ether")
-    presale = Presale[-1]
-    spice = Spice.deploy(
-        BUSD_ADDRESS,
-        presale.address,
-        ROUTER,
-        OWNER,
-        {"from": account},
-    )
+    spice = Spice.deploy(BUSD_ADDRESS, ROUTER, OWNER, {"from": account}, publish_source=True)
     print("deployed spice successfully")
 
-
-def setWallets():
-    account = get_account()
-    presale = Presale[-1]
-    spice = Spice[-1]
-    tx = presale.setTokenAddresses(spice.address, BUSD_ADDRESS, {"from": account})
-    tx.wait(1)
 
 
 def latest_contract():
     return Spice[-1]
 
 
-def latest_presale():
-    return Presale[-1]
 
 
 def deploy_liquidity_handler():
@@ -80,42 +63,10 @@ def set_fee_wallets():
     tx.wait(1)
 
 
-def addTestLiqudity():
-    account = get_account()
-    spice = Spice[-1]
-
-    one_ether = Web3.toWei(1, "ether")
-    ten_ether = Web3.toWei(1000, "ether")
-
-    print(spice.feeCollectedSpice())
-
-    tx = interface.IERC20(BUSD_ADDRESS).transfer(
-        spice.address, ten_ether, {"from": account}
-    )
-    tx.wait(1)
-
-    tx2 = interface.IERC20(spice.address).transfer(
-        spice.address, ten_ether, {"from": account}
-    )
-    tx2.wait(1)
-
-    print(interface.IERC20(BUSD_ADDRESS).balanceOf(spice.address))
-    print(interface.IERC20(spice.address).balanceOf(spice.address))
-
-    tx1 = spice.addLiquidityBusd(
-        ten_ether,
-        ten_ether,
-        {"from": account, "gas_limit": 2100000},
-    )
-    tx1.wait(1)
-
-    tx0 = spice.toggleFeeSwapping(True, {"from": account})
-    tx0.wait(1)
 
 
 def main():
     deploy_Contracts()
-    setWallets()
-    deploy_liquidity_handler()
-    set_fee_wallets()
-    addTestLiqudity()
+    # deploy_liquidity_handler()
+    # set_fee_wallets()
+    

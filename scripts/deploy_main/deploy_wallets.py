@@ -4,13 +4,13 @@ from brownie import (
     Dev,
     Treasury,
 )
-from scripts.helpful_scripts import get_account
+from scripts.helpful_scripts import get_account, BUSD_ADDRESS, OWNER_ADDRESS
 from web3 import Web3
-import helpful_scripts
+import scripts.helpful_scripts
 
-BUSD_ADDRESS = helpful_scripts.BUSD_ADDRESS
+BUSD_ADDRESS = BUSD_ADDRESS
 ACCOUNT = get_account()
-ADMIN = ''
+ADMIN = OWNER_ADDRESS
 
 #deploy wallets to the binance smart chain
 def main():

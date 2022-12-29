@@ -2,7 +2,6 @@
 
 pragma solidity 0.8.10;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
@@ -19,13 +18,17 @@ contract Treasury is AccessControl {
 
     fallback() external payable {
         emit Log("fallback", msg.sender, msg.value, msg.data);
+        payable(msg.sender).transfer(msg.value);
     }
 
     receive() external payable {
         emit Log("fallback", msg.sender, msg.value, "");
+        payable(msg.sender).transfer(msg.value);
     }
 
     function transferTo(address rec, uint256 amount) public onlyRole(DEV_ROLE) {
+        uint256 balance = IERC20(busd).balanceOf(address(this));
+        require(amount >= balance, "Withdraw amount exceeds balance");
         IERC20(busd).transfer(rec, amount);
     }
 }
